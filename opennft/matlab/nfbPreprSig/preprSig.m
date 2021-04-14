@@ -48,12 +48,7 @@ indVolNorm = double(indVolNorm);
 
 % raw time-series recursion
 rawTimeSeries = mainLoopData.rawTimeSeries;
-if ~P.isRestingState
-    % number of regressors of interest for cGLM
-    nrRegrDesign = size(P.spmDesign,2);
-else
-    nrRegrDesign = 0;
-end
+
 % number of regressors of no interest to correct with cGLM
 nrRegrToCorrect = 8; % 6 MC regressors, linear trend, constant
 
@@ -190,7 +185,7 @@ for indRoi = 1:P.NrROIs
  
     % 2.2. exemplary step-wise addition of regressors, step = total nr of
     % Regressors, which may require a justification for particular project
-    regrStep = nrRegrDesign+nrRegrToCorrect;
+    regrStep = mainLoopData.nrBasFct + nrRegrToCorrect;
     if isPSC || isSVM || P.isRestingState
         if P.NFRunNr == 1 || (P.NFRunNr > 1 && tmp_ind_end > 134)
             if (tmp_ind_end < regrStep)
@@ -203,13 +198,6 @@ for indRoi = 1:P.NrROIs
                 tmp_glmProcTimeSeries = (tmp_rawTimeSeries - cX0*betaReg)';
                 mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(mainLoopData.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
 
-                if P.isRTQA
-                    tContr = mainLoopData.tContr;
-                    erGlmProcTimeSeries = tmp_rawTimeSeries - cX0*betaReg;
-                    rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end) = erGlmProcTimeSeries'*erGlmProcTimeSeries/(tmp_ind_end - length(tContr.pos));
-                    rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
-                end
-
             elseif (tmp_ind_end >= regrStep) && (tmp_ind_end < 2*regrStep)
                 tmpRegr = [ones(tmp_ind_end,1) P.linRegr(1:tmp_ind_end)];
                 if P.cglmAR1
@@ -219,13 +207,6 @@ for indRoi = 1:P.NrROIs
                 betaReg = pinv(cX0) * tmp_rawTimeSeries;
                 tmp_glmProcTimeSeries = (tmp_rawTimeSeries - cX0 * betaReg)';
                 mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(mainLoopData.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
-
-                if P.isRTQA
-                    tContr = mainLoopData.tContr;
-                    erGlmProcTimeSeries = tmp_rawTimeSeries - cX0*betaReg;
-                    rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end) = erGlmProcTimeSeries'*erGlmProcTimeSeries/(tmp_ind_end - length(tContr.pos));
-                    rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
-                end
 
             elseif (tmp_ind_end >= 2*regrStep) && (tmp_ind_end < 3*regrStep)
                 tmpRegr = [ones(tmp_ind_end,1) P.linRegr(1:tmp_ind_end) ...
@@ -238,13 +219,6 @@ for indRoi = 1:P.NrROIs
                 tmp_glmProcTimeSeries = (tmp_rawTimeSeries - cX0 * betaReg)';
                 mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(mainLoopData.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
 
-                if P.isRTQA
-                    tContr = mainLoopData.tContr;
-                    erGlmProcTimeSeries = tmp_rawTimeSeries - cX0*betaReg;
-                    rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end) = erGlmProcTimeSeries'*erGlmProcTimeSeries/(tmp_ind_end - length(tContr.pos));
-                    rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
-                end
-
             else
                 % zscore() is cumulative, which limits truly recursive
                 % AR(1) filtering on regressors
@@ -254,10 +228,10 @@ for indRoi = 1:P.NrROIs
                     tmpRegr = arRegr(P.aAR1,tmpRegr);
                 end
                 if ~P.isRestingState
-                    cX0 = [tmpRegr P.spmDesign(1:tmp_ind_end,:)];
+                    cX0 = [tmpRegr mainLoopData.signalPreprocGlmDesign(1:tmp_ind_end,:)];
                     betaReg = pinv(cX0) * tmp_rawTimeSeries;
                     tmp_glmProcTimeSeries = (tmp_rawTimeSeries - ...
-                        cX0 * [betaReg(1:end-4); zeros(4,1)])';
+                        cX0 * [betaReg(1:end-mainLoopData.nrSignalPreprocGlmDesign); zeros(mainLoopData.nrSignalPreprocGlmDesign,1)])';
                 else
                     cX0 = tmpRegr;
                     betaReg = pinv(cX0) * tmp_rawTimeSeries;
@@ -265,21 +239,6 @@ for indRoi = 1:P.NrROIs
                 end
                 mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = betaReg;
 
-                if P.isRTQA
-                    if indRoi == 1
-                        invCX0 = inv(cX0'*cX0);
-                    end
-                    tContr = mainLoopData.tContr;
-                    erGlmProcTimeSeries = tmp_rawTimeSeries - cX0*betaReg;
-                    rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end) = erGlmProcTimeSeries'*erGlmProcTimeSeries/(tmp_ind_end - length(tContr.pos));
-                    rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:) = betaReg;
-                    tContr.pos = [ zeros(length(betaReg)-length(tContr.pos),1); tContr.pos ];
-                    tContr.neg = [ zeros(length(betaReg)-length(tContr.neg),1); tContr.neg ];
-                    pos_invCX0 = tContr.pos'*invCX0*tContr.pos;
-                    neg_invCX0 = tContr.neg'*invCX0*tContr.neg;
-                    rtQA_matlab.tGlmProcTimeSeries.pos(indRoi,tmp_ind_end) = tContr.pos'*betaReg /sqrt(rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end)*pos_invCX0);
-                    rtQA_matlab.tGlmProcTimeSeries.neg(indRoi,tmp_ind_end) = tContr.neg'*betaReg /sqrt(rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end)*neg_invCX0);
-                end
             end
         else
             % previous NFB run estimates, skip first # unstable
@@ -305,24 +264,43 @@ for indRoi = 1:P.NrROIs
             end
             mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = betaReg;
 
-            if P.isRTQA
-                % invCX0 is estimated for the first ROI, is the same for other ROIs
-                if indRoi == 1
-                    invCX0 = inv(cX0'*cX0);
-                end
-                tContr = mainLoopData.tContr;
-                erGlmProcTimeSeries = comb_tmp_rawTimeSeries - comb_cX0*betaReg;
-                rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end) = erGlmProcTimeSeries'*erGlmProcTimeSeries/(tmp_ind_end - length(tContr.pos));
-                rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:) = betaReg;
-                tContr.pos = [ zeros(length(betaReg)-length(tContr.pos),1); tContr.pos ];
-                tContr.neg = [ zeros(length(betaReg)-length(tContr.neg),1); tContr.neg ];
+        end
+        
+        if P.isRTQA
+            
+            if ~(P.NFRunNr == 1 || (P.NFRunNr > 1 && tmp_ind_end > 134))
+                cX0 = comb_cX0;
+            end
+            
+            % invCX0 is estimated for the first ROI, is the same for other ROIs
+            if indRoi == 1
+                invCX0 = inv(cX0'*cX0);
+            end
+            
+            tContr = mainLoopData.tContr;
+            erGlmProcTimeSeries = tmp_rawTimeSeries - cX0*betaReg;
+            rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end) = erGlmProcTimeSeries'*erGlmProcTimeSeries/(tmp_ind_end - length(tContr.pos));
+            
+            tmpBetRegr = [ betaReg; zeros(mainLoopData.nrBasFct + nrRegrToCorrect - length(betaReg),1) ];
+            rtQA_matlab.betRegr{indRoi}(tmp_ind_end,:) = tmpBetRegr;
+            
+            tContr.pos = [ zeros(length(betaReg)-length(tContr.pos),1); tContr.pos ];
+            tContr.neg = [ zeros(length(betaReg)-length(tContr.neg),1); tContr.neg ];
+            
+            if (tmp_ind_end >= 3*regrStep)
+
                 pos_invCX0 = tContr.pos'*invCX0*tContr.pos;
                 neg_invCX0 = tContr.neg'*invCX0*tContr.neg;
+
                 rtQA_matlab.tGlmProcTimeSeries.pos(indRoi,tmp_ind_end) = tContr.pos'*betaReg /sqrt(rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end)*pos_invCX0);
                 rtQA_matlab.tGlmProcTimeSeries.neg(indRoi,tmp_ind_end) = tContr.neg'*betaReg /sqrt(rtQA_matlab.varErGlmProcTimeSeries(indRoi,tmp_ind_end)*neg_invCX0);
+
             end
             
         end
+
+        mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(mainLoopData.nrBasFct + nrRegrToCorrect - length(betaReg),1) ];
+        
         mainLoopData.glmProcTimeSeries(indRoi,indVolNorm) = ...
                 tmp_glmProcTimeSeries(end);
 

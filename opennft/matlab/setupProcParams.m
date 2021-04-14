@@ -198,9 +198,9 @@ SPM = setupSPM(P);
 mainLoopData.K.X0 = SPM.xX.K.X0;
 
 %% Explicit contrasts (optional)
-if isfield(P,'Contrast')
-    mainLoopData.tContr.pos = P.Contrast; 
-    mainLoopData.tContr.neg = -P.Contrast; 
+if isfield(P,'ContrastActivation')
+    mainLoopData.tContr.pos = P.ContrastActivation;
+    mainLoopData.tContr.neg = -P.ContrastActivation;
 end
 
 if ~P.isRestingState
@@ -218,31 +218,15 @@ if ~P.isRestingState
     mainLoopData.pVal = .01;
     mainLoopData.statMap3D_iGLM = [];
 
-    % PSC
-    if isPSC && (strcmp(P.Prot, 'Cont') || strcmp(P.Prot, 'ContTask'))
-        tmpSpmDesign = SPM.xX.X(1:P.NrOfVolumes-P.nrSkipVol,contains(SPM.xX.name, P.CondIndexNames( 2 ))); % Index for Regulation block == 2
-    end
-    if isPSC && strcmp(P.Prot, 'Inter')
-        % Index for Regulation block == 2; READW block == 3; READNW block == 2; Display block == 2;
-        tmpSpmDesign = SPM.xX.X(1:P.NrOfVolumes-P.nrSkipVol,contains(SPM.xX.name, [string(P.CondIndexNames( 2 )),string(P.CondIndexNames( 3 )),string(P.CondIndexNames( 4 )),P.CondIndexNames( 6 )]));
-    end
+    mainLoopData.signalPreprocGlmDesign = mainLoopData.basFct(:,contains(SPM.xX.name, P.SignalPreprocessingBasis));
+    mainLoopData.nrSignalPreprocGlmDesign = size(mainLoopData.signalPreprocGlmDesign,2);
 
     % DCM
     if isDCM && strcmp(P.Prot, 'InterBlock')
-        % this contrast does not count constant term
-        tmpSpmDesign = SPM.xX.X(1:P.lengthDCMTrial,2);
         [mainLoopData.DCM_EN, mainLoopData.dcmParTag, ...
             mainLoopData.dcmParOpp] = dcmPrep(SPM);
     end
 
-    % SVM
-    if isSVM && strcmp(P.Prot, 'Cont')
-        mainLoopData.basFct = mainLoopData.basFct(:,find(contains(SPM.xX.name, P.CondIndexNames( 2 )))); % Index for Regulation block == 2
-        mainLoopData.nrBasFct = 1;
-        % this contrast does not count constant term
-        tmpSpmDesign = SPM.xX.X(1:P.NrOfVolumes-P.nrSkipVol,contains(SPM.xX.name, P.CondIndexNames( 2 ))); % Index for Regulation block == 2
-    end
-        
     %% High-pass filter for iGLM given by SPM
     mainLoopData.K = SPM.xX.K;
 
@@ -286,14 +270,6 @@ else
     mainLoopData.statMap3D_iGLM = [];
 end
 
-%% rGLM beta init
-mainLoopData.betRegr = cell(P.NrROIs,1);
-for i=1:P.NrROIs
-    % TODO:
-    % 2 - linear trend and constant; 6 - motion regressors
-    mainLoopData.betRegr{i} = zeros(P.NrOfVolumes-P.nrSkipVol, 2+6+size(P.spmDesign,2));
-end
-
 %% rtQA init
 rtQA_matlab.snrMapCreated = 0; 
 if P.isRTQA
@@ -335,8 +311,8 @@ if P.isRTQA
     rtQA_matlab.snrData.m2NonSmoothed = [];
     rtQA_matlab.snrData.iteration = 1;
 
-    rtQA_matlab.betRegr = mainLoopData.betRegr;
-    
+    rtQA_matlab.betRegr = cell(P.NrROIs,1);
+
     rtQA_matlab.Bn = cell(P.NrROIs,1);
     rtQA_matlab.var = cell(P.NrROIs,1);
     rtQA_matlab.tn.pos = cell(P.NrROIs,1);
