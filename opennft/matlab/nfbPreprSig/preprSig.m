@@ -196,7 +196,6 @@ for indRoi = 1:P.NrROIs
                 cX0 = tmpRegr;
                 betaReg = pinv(cX0)*tmp_rawTimeSeries;
                 tmp_glmProcTimeSeries = (tmp_rawTimeSeries - cX0*betaReg)';
-                mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(mainLoopData.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
 
             elseif (tmp_ind_end >= regrStep) && (tmp_ind_end < 2*regrStep)
                 tmpRegr = [ones(tmp_ind_end,1) P.linRegr(1:tmp_ind_end)];
@@ -206,7 +205,6 @@ for indRoi = 1:P.NrROIs
                 cX0 = tmpRegr;
                 betaReg = pinv(cX0) * tmp_rawTimeSeries;
                 tmp_glmProcTimeSeries = (tmp_rawTimeSeries - cX0 * betaReg)';
-                mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(mainLoopData.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
 
             elseif (tmp_ind_end >= 2*regrStep) && (tmp_ind_end < 3*regrStep)
                 tmpRegr = [ones(tmp_ind_end,1) P.linRegr(1:tmp_ind_end) ...
@@ -217,7 +215,6 @@ for indRoi = 1:P.NrROIs
                 cX0 = tmpRegr;
                 betaReg = pinv(cX0) * tmp_rawTimeSeries;
                 tmp_glmProcTimeSeries = (tmp_rawTimeSeries - cX0 * betaReg)';
-                mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = [ betaReg; zeros(length(mainLoopData.betRegr{indRoi}(tmp_ind_end,:))-length(betaReg),1) ];
 
             else
                 % zscore() is cumulative, which limits truly recursive
@@ -237,7 +234,6 @@ for indRoi = 1:P.NrROIs
                     betaReg = pinv(cX0) * tmp_rawTimeSeries;
                     tmp_glmProcTimeSeries = (tmp_rawTimeSeries - cX0 * betaReg)';
                 end
-                mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = betaReg;
 
             end
         else
@@ -253,7 +249,7 @@ for indRoi = 1:P.NrROIs
                 tmpRegr = arRegr(P.aAR1,tmpRegr);
             end
             if ~P.isRestingState
-                comb_cX0 = [mainLoopData.prev_cX0(nrSkipPrevRunScansGLM+1:end,:);[tmpRegr P.spmDesign(1:tmp_ind_end,:)]];
+                comb_cX0 = [mainLoopData.prev_cX0(nrSkipPrevRunScansGLM+1:end,:);[tmpRegr mainLoopData.signalPreprocGlmDesign(1:tmp_ind_end,:)]];
                 betaReg = pinv(comb_cX0) * comb_tmp_rawTimeSeries;
                 tmp_glmProcTimeSeries = (comb_tmp_rawTimeSeries - ...
                     comb_cX0 * [betaReg(1:end-4); zeros(4,1)])';
@@ -262,7 +258,6 @@ for indRoi = 1:P.NrROIs
                 betaReg = pinv(comb_cX0) * comb_tmp_rawTimeSeries;
                 tmp_glmProcTimeSeries = (comb_tmp_rawTimeSeries - comb_cX0 * betaReg)';
             end
-            mainLoopData.betRegr{indRoi}(tmp_ind_end,:) = betaReg;
 
         end
         
