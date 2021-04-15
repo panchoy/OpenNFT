@@ -314,6 +314,9 @@ for indRoi = 1:P.NrROIs
         tmp_glmProcTimeSeries = (tmp_rawTimeSeries - cX0*betaReg)';
         mainLoopData.glmProcTimeSeries(indRoi,indVolNorm) = ...
             tmp_glmProcTimeSeries(end);
+                
+        mainLoopData.betRegr{indRoi}(indVolNorm,:) = zeros(mainLoopData.nrBasFct + nrRegrToCorrect - length(betaReg),1);
+        
     end
 
     % 2.3.2 alternative detrending using EMA filter, careful, exponential lags
