@@ -47,8 +47,6 @@ if ~P.isRestingState
         inc = 1;
     end
 
-    tmpSignalPreprocessingBasis = textscan(prt.SignalPreprocessingBasis,'%s','Delimiter',';');
-    P.SignalPreprocessingBasis = tmpSignalPreprocessingBasis{:};
     P.CondIndexNames = protNames;
     for x=1:lCond
         P.ProtCond{x} = {};
