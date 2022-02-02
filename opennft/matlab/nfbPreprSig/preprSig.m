@@ -402,8 +402,8 @@ mainLoopData.rawTimeSeries = rawTimeSeries;
 
 % calcualte average limits for 2 ROIs, e.g. for bilateral NF
 % NF extensions with >2 ROIs requires an additional justification
-mainLoopData.mposMax(indVolNorm)= mean(mainLoopData.posMax(:, indVolNorm));
-mainLoopData.mposMin(indVolNorm)= mean(mainLoopData.posMin(:, indVolNorm));
+mainLoopData.mposMax(indVolNorm)= max(mainLoopData.posMax(:, indVolNorm));
+mainLoopData.mposMin(indVolNorm)= min(mainLoopData.posMin(:, indVolNorm));
 
 output.posMin = [mainLoopData.posMin; mainLoopData.mposMin];
 output.posMax = [mainLoopData.posMax; mainLoopData.mposMax];

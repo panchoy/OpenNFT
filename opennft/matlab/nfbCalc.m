@@ -211,12 +211,8 @@ if isPSC && strcmp(P.Prot, 'Inter')
 
             for indRoi = 1:P.NrROIs
                 isFeedbackPSC = 1;
-                if ~isFeedbackPSC
-                    % Common range Scaling was recommneded/tested for
-                    % bilateral co-activation only. Separarte range scaling
-                    % should be also used with caution because signals
-                    % may have reasonably different ranges and separate
-                    % scaling would neutralize it.
+                if isFeedbackPSC
+                    % Common range Scaling via max/min across all ROIs
 
                     % Averaging across blocks
                     mBas  = median(mainLoopData.kalmanProcTimeSeries(indRoi,...
@@ -243,14 +239,11 @@ if isPSC && strcmp(P.Prot, 'Inter')
             end
 
             % compute feedback based on two ROIs average or difference
-            if ~isFeedbackPSC && P.NrROIs == 2
-                tmp_fbVal = eval(P.RoiAnatOperation);
-            elseif isFeedbackPSC && P.NrROIs == 4
-                tmp_fbVal = mean(norm_percValues(1:2)) - mean(norm_percValues(3:4));
-                %tmp_fbVal = norm_percValues(2) - norm_percValues(1);
-            end
+            %tmp_fbVal = eval(P.RoiAnatOperation);
+            tmp_fbVal = mean(norm_percValues(1:3)) - mean(norm_percValues(2:4));
+
             mainLoopData.vectNFBs(indVolNorm) = tmp_fbVal;
-            dispValue = round(P.MaxFeedbackVal*tmp_fbVal, P.FeedbackValDec); 
+            dispValue = round(P.MaxFeedbackVal*(1-tmp_fbVal), P.FeedbackValDec); 
 
             % display feedback value and threshold overheads
             if ~P.NegFeedback && dispValue < 0
