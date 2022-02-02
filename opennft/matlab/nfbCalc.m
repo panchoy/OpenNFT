@@ -240,7 +240,7 @@ if isPSC && strcmp(P.Prot, 'Inter')
 
             % compute feedback based on two ROIs average or difference
             %tmp_fbVal = eval(P.RoiAnatOperation);
-            tmp_fbVal = mean(norm_percValues(1:3)) - mean(norm_percValues(2:4));
+            tmp_fbVal = mean(norm_percValues([1,3])) - mean(norm_percValues([2,4]));
 
             mainLoopData.vectNFBs(indVolNorm) = tmp_fbVal;
             dispValue = round(P.MaxFeedbackVal*(1-tmp_fbVal), P.FeedbackValDec); 
