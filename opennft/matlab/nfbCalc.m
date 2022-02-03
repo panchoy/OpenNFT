@@ -138,7 +138,7 @@ if isPSC && strcmp(P.Prot, 'Inter')
     % NF estimation condition
     if condition == 5
         % count Rest blocks
-        instructLength = 4;
+        instructLength = 3;
         % Rest block index == 5
         k = cellfun(@(x) x(end) == indVolNorm, P.ProtCond{ 5 });
         if any(k)

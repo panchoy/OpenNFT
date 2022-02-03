@@ -253,9 +253,15 @@ if strcmp(protName, 'Inter')
 
     vectList = zeros(NrOfVolumes-nrSkipVol,1);
     wordList = strings(NrOfVolumes-nrSkipVol,1);
+    jitterList = zeros(NrOfVolumes-nrSkipVol,1);
 
     load([workFolder filesep 'Settings' filesep 'WORDS_Run_' sprintf('%d',P.NFRunNr) '.mat']);
     load([workFolder filesep 'Settings' filesep 'NOWORDS_Run_' sprintf('%d',P.NFRunNr) '.mat']);
+
+    load([workFolder filesep 'Settings' filesep 'JITTER_WORDS_Run_' sprintf('%d',P.NFRunNr) '.mat']);
+    jitterWords = str2double(JITTER);
+    load([workFolder filesep 'Settings' filesep 'JITTER_NOWORDS_Run_' sprintf('%d',P.NFRunNr) '.mat']);
+    jitterNoWords = str2double(JITTER);
 
     for i = 1:lCond
         tmpOnstes = prt.ConditionIndex{i}.OnOffsets;
@@ -270,6 +276,7 @@ if strcmp(protName, 'Inter')
                 for iStim = 1:length(newOnsets)
                     kW = kW + 1;
                     wordList(newOnsets(iStim)) = WORDS(kW);
+                    jitterList(newOnsets(iStim)) = jitterWords(kW);
                 end
 
             elseif strcmp(tmpName,'READNW')
@@ -278,6 +285,7 @@ if strcmp(protName, 'Inter')
                 for iStim = 1:length(newOnsets)
                     kNW = kNW + 1;
                     wordList(newOnsets(iStim)) = NOWORDS(kNW);
+                    jitterList(newOnsets(iStim)) = jitterNoWords(kNW);
                 end            
 
             end
@@ -286,6 +294,7 @@ if strcmp(protName, 'Inter')
     end  
     P.vectList = vectList;
     P.wordList = wordList;
+    P.jitterList = jitterList;
 end
 
 %% DCM

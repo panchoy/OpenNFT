@@ -14,6 +14,7 @@ function displayFeedback(displayData)
 
 isPrePostTest = 0;
 nrSkipVol = 6;
+dispStimTime = 1.5;
 
 tDispl = tic;
 
@@ -152,8 +153,9 @@ switch feedbackType
                      P.Screen.vbl + P.Screen.ifi/2);
             case 3  % Regualtion 2    
                 if P.vectList(indVolNorm) == 1
-                    fprintf('job done 3 \n')
                     wordDisp = char(P.wordList(indVolNorm));
+                    jitterDisp = P.jitterList(indVolNorm);
+                    fprintf(['case 3 volume ' mat2str(indVolNorm) ' jitter set ' mat2str(jitterDisp) '\n'])
                     % Text 
                     Screen(P.Screen.wPtr, 'FillRect', [100 100 100]);
                     Screen('TextSize', P.Screen.wPtr , P.Screen.h/10);
@@ -167,13 +169,13 @@ switch feedbackType
                         floor(P.Screen.w/2+P.Screen.w/200), ...
                         floor(P.Screen.h/2+P.Screen.w/200)]);     
 
-                     nPause = randi(75)/100;
-                     pause(nPause);  
+                     pause(jitterDisp);  
 
                      P.Screen.vbl = Screen('Flip', P.Screen.wPtr, ...
                          P.Screen.vbl + P.Screen.ifi/2);   
 
-                     pause(1.5);
+                     nPause = dispStimTime-P.Screen.ifi/2;
+                     pause(nPause);
 
                     % blanck screen
                      Screen(P.Screen.wPtr, 'FillRect', [100 100 100]);
@@ -191,8 +193,9 @@ switch feedbackType
                 end                 
             case 4  % Regualtion 3
                 if P.vectList(indVolNorm) == 2
-                    fprintf('job done 4 \n')
                     wordDisp = char(P.wordList(indVolNorm));
+                    jitterDisp = P.jitterList(indVolNorm);
+                    fprintf(['case 4 volume ' mat2str(indVolNorm) ' jitter set ' mat2str(jitterDisp) '\n'])                 
                
                     % Text 
                     Screen(P.Screen.wPtr, 'FillRect', [100 100 100]);
@@ -207,13 +210,13 @@ switch feedbackType
                         floor(P.Screen.w/2+P.Screen.w/200), ...
                         floor(P.Screen.h/2+P.Screen.w/200)]);     
 
-                     nPause = randi(75)/100;
-                     pause(nPause);                
+                     pause(jitterDisp);                
 
                      P.Screen.vbl = Screen('Flip', P.Screen.wPtr, ...
                          P.Screen.vbl + P.Screen.ifi/2);     
 
-                     pause(1.5);
+                     nPause = dispStimTime-P.Screen.ifi/2;
+                     pause(nPause);
 
                      % blanck screen
                      Screen(P.Screen.wPtr, 'FillRect', [100 100 100]);
