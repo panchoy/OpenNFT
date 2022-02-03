@@ -138,16 +138,17 @@ if isPSC && strcmp(P.Prot, 'Inter')
     % NF estimation condition
     if condition == 5
         % count Rest blocks
+        instructLength = 4;
         % Rest block index == 5
         k = cellfun(@(x) x(end) == indVolNorm, P.ProtCond{ 5 });
         if any(k)
             blockNF = find(k);
             firstNF = indVolNorm;
             mainLoopData.flagEndPSC = 1;
-            if (P.ProtCond{ 2 }{blockNF}(end)+4) == ( P.ProtCond{ 3 }{blockTask1}(1))
+            if (P.ProtCond{ 2 }{blockNF}(end)+instructLength) == ( P.ProtCond{ 3 }{blockTask1}(1))
                 isTask1 = 1;
                 isTask2 = 0;
-            elseif (P.ProtCond{ 2 }{blockNF}(end)+4) == ( P.ProtCond{ 4 }{blockTask2}(1))
+            elseif (P.ProtCond{ 2 }{blockNF}(end)+instructLength) == ( P.ProtCond{ 4 }{blockTask2}(1))
                 isTask1 = 0;
                 isTask2 = 1;
             end

@@ -218,19 +218,48 @@ if strcmp(protName, 'Inter')
     
     Screen('TextSize',P.Screen.wPtr, 100);
     
-    %% 
+    %% Load and check Protocol
     fName = [workFolder filesep 'Settings' filesep 'NF_PCS_int_FT_run_' sprintf('%d',P.NFRunNr) '.json'];
     prt = loadjson(fName);
+    
+    lCond = length(prt.ConditionIndex);
+    for x=1:lCond
+        protNames{x} = prt.ConditionIndex{x}.ConditionName;
+    end
 
-    vectList = zeros(603,1);
-    wordList = strings(603,1);
+    NrOfVolumes = 609;
+    nrSkipVol = 6;
+    P.vectEncCond = ones(1,NrOfVolumes-nrSkipVol);
+
+    % check if baseline field already exists in protocol
+    % and protocol reading presets
+    % 1 is for Baseline
+    indexBAS = strcmp(protNames,'BAS');
+    if any(indexBAS)
+        P.basBlockLength = prt.ConditionIndex{ 1 }.OnOffsets(1,2);
+        inc = 0;
+    else
+        inc = 1;
+    end
+    P.CondIndexNames = protNames;
+    for x=1:lCond
+        P.ProtCond{x} = {};
+        for k = 1:length(prt.ConditionIndex{x}.OnOffsets(:,1))
+            unitBlock = prt.ConditionIndex{x}.OnOffsets(k,1) : prt.ConditionIndex{x}.OnOffsets(k,2);
+            P.vectEncCond(unitBlock) = x+inc;
+            P.ProtCond{x}(k,:) = {unitBlock};
+        end
+    end    
+
+    vectList = zeros(NrOfVolumes-nrSkipVol,1);
+    wordList = strings(NrOfVolumes-nrSkipVol,1);
 
     load([workFolder filesep 'Settings' filesep 'WORDS_Run_' sprintf('%d',P.NFRunNr) '.mat']);
     load([workFolder filesep 'Settings' filesep 'NOWORDS_Run_' sprintf('%d',P.NFRunNr) '.mat']);
 
-    for i = 1:6
+    for i = 1:lCond
         tmpOnstes = prt.ConditionIndex{i}.OnOffsets;
-        tmpName = prt.ConditionIndex{i}.ConditionName;
+        tmpName = protNames{i};
         lOnsets = size(tmpOnstes,1);
         kW = 0; kNW = 0;
         for iOn = 1:lOnsets
