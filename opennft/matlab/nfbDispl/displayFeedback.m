@@ -12,10 +12,6 @@ function displayFeedback(displayData)
 %
 % Written by Yury Koush, Artem Nikonorov
 
-isPrePostTest = 0;
-nrSkipVol = 6;
-dispStimTime = 1.5;
-
 tDispl = tic;
 
 P = evalin('base', 'P');
@@ -27,7 +23,7 @@ defaultFields = {'', 0, 0, '', '', '', 0};
 % disp(displayData)
 eval(varsFromStruct(displayData, fieldNames, defaultFields))
 
-indVolNorm = iteration - nrSkipVol;
+indVolNorm = iteration - P.nrSkipVol;
 
 if ~strcmp(feedbackType, 'DCM')
     dispColor = [255, 255, 255];
@@ -174,7 +170,7 @@ switch feedbackType
                      P.Screen.vbl = Screen('Flip', P.Screen.wPtr, ...
                          P.Screen.vbl + P.Screen.ifi/2);   
 
-                     nPause = dispStimTime-P.Screen.ifi/2;
+                     nPause = P.dispStimTime-P.Screen.ifi/2;
                      pause(nPause);
 
                     % blanck screen
@@ -188,8 +184,6 @@ switch feedbackType
 
                      P.Screen.vbl = Screen('Flip', P.Screen.wPtr, ...
                          P.Screen.vbl + P.Screen.ifi/2);                   
-%                 else
-%                     wordDisp = char(' ');
                 end                 
             case 4  % Regualtion 3
                 if P.vectList(indVolNorm) == 2
@@ -215,7 +209,7 @@ switch feedbackType
                      P.Screen.vbl = Screen('Flip', P.Screen.wPtr, ...
                          P.Screen.vbl + P.Screen.ifi/2);     
 
-                     nPause = dispStimTime-P.Screen.ifi/2;
+                     nPause = P.dispStimTime-P.Screen.ifi/2;
                      pause(nPause);
 
                      % blanck screen
@@ -228,8 +222,6 @@ switch feedbackType
                          floor(P.Screen.h/2+P.Screen.w/200)]);                  
                      P.Screen.vbl = Screen('Flip', P.Screen.wPtr, ...
                          P.Screen.vbl + P.Screen.ifi/2);     
-%                 else
-%                     wordDisp = char(' ');
                 end                      
             case 5  % Rest
                 % blanck screen
@@ -238,7 +230,7 @@ switch feedbackType
                      P.Screen.vbl + P.Screen.ifi/2);                 
                  
             case 6 % NF
-                if isPrePostTest
+                if P.isPrePostTest
                     % blanck screen
                      Screen(P.Screen.wPtr, 'FillRect', [0 0 0]);
                      P.Screen.vbl = Screen('Flip', P.Screen.wPtr, ...

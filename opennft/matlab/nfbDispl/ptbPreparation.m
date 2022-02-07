@@ -21,6 +21,11 @@ function ptbPreparation(screenId, workFolder, protName)
 
 P = evalin('base', 'P');
 
+P.isPrePostTest = 0; %run 0 or pre post 1
+P.NrOfVolumes = 582; % run 582  or  pre post 262
+P.nrSkipVol = 6;
+P.dispStimTime = 1.5;
+
 Screen('CloseAll');
 Screen('Preference', 'SkipSyncTests', 2);
 
@@ -227,9 +232,7 @@ if strcmp(protName, 'Inter')
         protNames{x} = prt.ConditionIndex{x}.ConditionName;
     end
 
-    NrOfVolumes = 609;
-    nrSkipVol = 6;
-    P.vectEncCond = ones(1,NrOfVolumes-nrSkipVol);
+    P.vectEncCond = ones(1,P.NrOfVolumes-P.nrSkipVol);
 
     % check if baseline field already exists in protocol
     % and protocol reading presets
@@ -251,9 +254,9 @@ if strcmp(protName, 'Inter')
         end
     end    
 
-    vectList = zeros(NrOfVolumes-nrSkipVol,1);
-    wordList = strings(NrOfVolumes-nrSkipVol,1);
-    jitterList = zeros(NrOfVolumes-nrSkipVol,1);
+    vectList = zeros(P.NrOfVolumes-P.nrSkipVol,1);
+    wordList = strings(P.NrOfVolumes-P.nrSkipVol,1);
+    jitterList = zeros(P.NrOfVolumes-P.nrSkipVol,1);
 
     load([workFolder filesep 'Settings' filesep 'WORDS_Run_' sprintf('%d',P.NFRunNr) '.mat']);
     load([workFolder filesep 'Settings' filesep 'NOWORDS_Run_' sprintf('%d',P.NFRunNr) '.mat']);

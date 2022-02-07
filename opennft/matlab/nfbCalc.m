@@ -125,6 +125,8 @@ if isPSC && strcmp(P.Prot, 'Inter')
             blockTask1 = find(iTask1);
             lastTask1 = indVolNorm;
             mainLoopData.flagEndPSC = 1;
+            mainLoopData.isTask1 = 1;
+            mainLoopData.isTask2 = 0;            
         end
         % Task2 block index == 4
         iTask2 = cellfun(@(x) x(end) == indVolNorm, P.ProtCond{ 4 });
@@ -132,61 +134,54 @@ if isPSC && strcmp(P.Prot, 'Inter')
             blockTask2 = find(iTask2);
             lastTask2 = indVolNorm;
             mainLoopData.flagEndPSC = 1;
+            mainLoopData.isTask1 = 0;
+            mainLoopData.isTask2 = 1;                
         end
     end
 
     % NF estimation condition
     if condition == 5
-        % count Rest blocks
-        instructLength = 3;
         % Rest block index == 5
         k = cellfun(@(x) x(end) == indVolNorm, P.ProtCond{ 5 });
         if any(k)
             blockNF = find(k);
             firstNF = indVolNorm;
             mainLoopData.flagEndPSC = 1;
-            if (P.ProtCond{ 2 }{blockNF}(end)+instructLength) == ( P.ProtCond{ 3 }{blockTask1}(1))
-                isTask1 = 1;
-                isTask2 = 0;
-            elseif (P.ProtCond{ 2 }{blockNF}(end)+instructLength) == ( P.ProtCond{ 4 }{blockTask2}(1))
-                isTask1 = 0;
-                isTask2 = 1;
-            end
-        end
-
-        % assign baseline indexes, for complications in fixation condition
-        % number of indxAllBAS should be equal to number of blockNF for
-        % simplicity
-        isMixedBaseline = 1;
-        if ~isMixedBaseline
-            indxAllBAS = 1:1:length(P.ProtCond{ 1 }); % Baseline block index == 1
-        else
-            indxAllBAS = 1:2:length(P.ProtCond{ 1 }); % Baseline block index == 1
-        end
-
-        isTakePreviousBlockBAS = 0;
-        % Get reference baseline in cumulated way across the RUN,
-        % or any other fashion
-        if ~isTakePreviousBlockBAS
-            i_blockBAS = [];
-            if blockNF==1
-                i_blockBAS = P.ProtCond{ 1 }{indxAllBAS(blockNF)}(3:end);  % Baseline block index == 1
-            elseif blockNF>1
-                for iBas = 1:blockNF
-                    i_blockBAS = [i_blockBAS P.ProtCond{ 1 }{indxAllBAS(iBas)}(4:end)];  % Baseline block index == 1
-                    % ignore 2 scans for HRF shift, e.g. if TR = 2sec
-                end
-            end
         end
 
         regSuccess = 0;
-        if firstNF == indVolNorm % the first volume of the NF block is 
+        if firstNF == indVolNorm % the first volume of the NF block is         
+            % assign baseline indexes, for complications in fixation condition
+            % number of indxAllBAS should be equal to number of blockNF for
+            % simplicity
+            isMixedBaseline = 1;
+            if ~isMixedBaseline
+                indxAllBAS = 1:1:length(P.ProtCond{ 1 }); % Baseline block index == 1
+            else
+                indxAllBAS = 1:2:length(P.ProtCond{ 1 }); % Baseline block index == 1
+            end
+
+            isTakePreviousBlockBAS = 0;
+            % Get reference baseline in cumulated way across the RUN,
+            % or any other fashion
+            if ~isTakePreviousBlockBAS
+                i_blockBAS = [];
+                if blockNF==1
+                    i_blockBAS = P.ProtCond{ 1 }{indxAllBAS(blockNF)}(3:end);  % Baseline block index == 1
+                elseif blockNF>1
+                    for iBas = 1:blockNF
+                        i_blockBAS = [i_blockBAS P.ProtCond{ 1 }{indxAllBAS(iBas)}(4:end)];  % Baseline block index == 1
+                        % ignore 2 scans for HRF shift, e.g. if TR = 2sec
+                    end
+                end
+            end
+            
             % expected when assigning volumes for averaging, take HRF delay
             % into account
             if blockNF==1
-                if isTask1
+                if mainLoopData.isTask1
                     i_blockNF = [P.ProtCond{ 2 }{blockNF}(4:end) P.ProtCond{ 3 }{blockTask1}(4:end)]; % NFBREG block index == 2; Task1 block index == 3; Task1 block index == 4
-                elseif isTask2
+                elseif mainLoopData.isTask2
                     i_blockNF = [P.ProtCond{ 2 }{blockNF}(4:end) P.ProtCond{ 4 }{blockTask2}(4:end)];
                 end
                 if isTakePreviousBlockBAS
@@ -194,9 +189,9 @@ if isPSC && strcmp(P.Prot, 'Inter')
                     i_blockBAS = P.ProtCond{ 1 }{indxAllBAS(blockNF)}(3:end);
                 end
             elseif blockNF>1
-                if isTask1
+                if mainLoopData.isTask1
                     i_blockNF = [P.ProtCond{ 2 }{blockNF}(4:end) P.ProtCond{ 3 }{blockTask1}(4:end)];
-                elseif isTask2
+                elseif mainLoopData.isTask2
                     i_blockNF = [P.ProtCond{ 2 }{blockNF}(4:end) P.ProtCond{ 4 }{blockTask2}(4:end)];
                 end
 
@@ -241,7 +236,8 @@ if isPSC && strcmp(P.Prot, 'Inter')
 
             % compute feedback based on two ROIs average or difference
             %tmp_fbVal = eval(P.RoiAnatOperation);
-            tmp_fbVal = mean(norm_percValues([1,3])) - mean(norm_percValues([2,4]));
+            tmp_fbVal = mean(norm_percValues([3,4])) - mean(norm_percValues([1,2]));
+            fprintf(['NFB intermediate tmp_fbVal ' mat2str(tmp_fbVal) '\n'])  
 
             mainLoopData.vectNFBs(indVolNorm) = tmp_fbVal;
             dispValue = round(P.MaxFeedbackVal*(1-tmp_fbVal), P.FeedbackValDec); 
