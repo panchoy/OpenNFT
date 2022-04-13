@@ -120,6 +120,10 @@ mainLoopData.mposMin = [];
 
 mainLoopData.blockNF = 0;
 mainLoopData.firstNF = 0;
+mainLoopData.blockTask1 = 0;
+mainLoopData.lastTask1 = 0;
+mainLoopData.blockTask2 = 0;
+mainLoopData.lastTask2 = 0;
 
 %% DCM Settings
 if flags.isDCM
@@ -180,7 +184,7 @@ end
 
 %% adding high-pass filter to iGLM
 % Note, different data processing iGLM approach as compared to SPM
-P.isHighPass = true;
+P.isHighPass = false;
 
 %% adding linear regressor
 P.isLinRegr = true;
