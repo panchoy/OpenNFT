@@ -27,8 +27,7 @@ else
     else
         displayBgEpiName = P.MCTempl;
         if ~P.isAutoRTQA || (P.isAutoRTQA && P.useEPITemplate)
-            [displayBgEpi.voxelCoord, displayBgEpi.voxelIndex, ...
-                displayBgEpi.mat, displayBgEpi.dim, displayBgEpi.vol] = ...
+            [displayBgEpi.mat, displayBgEpi.dim, displayBgEpi.vol] = ...
                 readVol(displayBgEpiName);
         else
             displayBgEpi.vol          = double(dicomread(P.MCTempl));
