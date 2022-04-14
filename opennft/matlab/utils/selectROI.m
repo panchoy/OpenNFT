@@ -49,6 +49,7 @@ if flags.isPSC || flags.isSVM || flags.isCorr || P.isAutoRTQA
          ROIs(iFile).dim, ROIs(iFile).vol] = readVol(roiNames{iFile});
         ROIs(iFile).vol(ROIs(iFile).vol < 0.5) = 0;
         ROIs(iFile).vol(ROIs(iFile).vol >= 0.5) = 1;
+        ROIs(iFile).voxelIndex = find( ROIs(iFile).vol > 0)
     end
 
     assignin('base', 'ROIs', ROIs);
@@ -91,6 +92,7 @@ if flags.isDCM
                                               readVol(roiNamesAnat{iFile});
         ROIsAnat(iFile).vol(ROIsAnat(iFile).vol < 0.5) = 0;
         ROIsAnat(iFile).vol(ROIsAnat(iFile).vol >= 0.5) = 1;
+        ROIsAnat(iFile).voxelIndex = find( ROIsAnat(iFile).vol > 0)
     end
 
     %% Group
@@ -112,6 +114,7 @@ if flags.isDCM
                                              readVol(roiNamesGroup{iFile});
         ROIsGroup(iFile).vol(ROIsGroup(iFile).vol < 0.5) = 0;
         ROIsGroup(iFile).vol(ROIsGroup(iFile).vol >= 0.5) = 1;
+        ROIsGroup(iFile).voxelIndex = find( ROIsGroup(iFile).vol > 0)
     end
 
     assignin('base', 'ROIsGroup', ROIsGroup);
