@@ -246,7 +246,7 @@ if flags.isPSC && strcmp(P.Prot, 'Inter')
             %tmp_fbVal = eval(P.RoiAnatOperation);
             tmp_fbVal = mean(norm_percValues([3,4])) - mean(norm_percValues([1,2]));
             
-            if tmp_fbVal < 0
+            if ( mean(norm_percValues) < 0 ) && (( mean(norm_percValues([3,4])) < 0 ) && ( mean(norm_percValues([1,2])) < 0 )) 
                 tmp_fbVal = 1;
             end
             
