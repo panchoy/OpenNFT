@@ -245,6 +245,11 @@ if flags.isPSC && strcmp(P.Prot, 'Inter')
             % compute feedback based on two ROIs average or difference
             %tmp_fbVal = eval(P.RoiAnatOperation);
             tmp_fbVal = mean(norm_percValues([3,4])) - mean(norm_percValues([1,2]));
+            
+            if tmp_fbVal < 0
+                tmp_fbVal = 1;
+            end
+            
             fprintf(['NFB intermediate tmp_fbVal ' mat2str(tmp_fbVal) '\n'])  
 
             mainLoopData.signalNFB(blockNF) = tmp_fbVal;
