@@ -126,7 +126,7 @@ HIDE_TEST_BTN = True
 
 # rtQA may cause linear performance loss on the big data
 # due to saving process of iGLM quality parameters
-USE_RTQA = True
+USE_RTQA = False
 USE_IGLM = True
 USE_ROI = True
 FIRST_SNR_VOLUME = 1

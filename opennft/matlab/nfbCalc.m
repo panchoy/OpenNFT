@@ -238,6 +238,8 @@ if flags.isPSC && strcmp(P.Prot, 'Inter')
                         i_blockNF));
                     norm_percValues(indRoi) = 100*(mCondPSC - mBasPSC)/mBasPSC;
                 end
+                mainLoopData.mCondScaled(blockNF,indRoi) = mCondScaled;
+                mainLoopData.mBasScaled(blockNF,indRoi) = mBasScaled;
             end
 
             % compute feedback based on two ROIs average or difference
@@ -245,7 +247,7 @@ if flags.isPSC && strcmp(P.Prot, 'Inter')
             tmp_fbVal = mean(norm_percValues([3,4])) - mean(norm_percValues([1,2]));
             fprintf(['NFB intermediate tmp_fbVal ' mat2str(tmp_fbVal) '\n'])  
 
-            mainLoopData.vectNFBs(indVolNorm) = tmp_fbVal;
+            mainLoopData.signalNFB(blockNF) = tmp_fbVal;
             dispValue = round(P.MaxFeedbackVal*(1-tmp_fbVal), P.FeedbackValDec); 
 
             % display feedback value and threshold overheads
