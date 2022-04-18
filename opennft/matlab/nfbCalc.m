@@ -146,9 +146,9 @@ if flags.isPSC && strcmp(P.Prot, 'Inter')
     end
 
     % NF estimation condition
-    if condition == 5
-        % Rest block index == 5
-        k = cellfun(@(x) x(end) == indVolNorm, P.ProtCond{ 5 });
+    if condition == 3 || condition == 4
+        % Rest block index == 3 or 4
+        k = cellfun(@(x) x(end) == indVolNorm, P.ProtCond{ condition });
         if any(k)
             blockNF = find(k);
             firstNF = indVolNorm;
