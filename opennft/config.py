@@ -40,6 +40,9 @@ MATLAB_NAME_SUFFIX = ''
 DICOM_FILES_EXTENSION = '.dcm'
 IMAPH_FILES_EXTENSION = '.img'
 
+# For test purposes
+USE_YIELD = False
+
 # MRI triggering is required
 USE_MRPULSE = False
 
@@ -126,7 +129,7 @@ HIDE_TEST_BTN = True
 
 # rtQA may cause linear performance loss on the big data
 # due to saving process of iGLM quality parameters
-USE_RTQA = False
+USE_RTQA = True
 USE_IGLM = True
 USE_ROI = True
 FIRST_SNR_VOLUME = 1
