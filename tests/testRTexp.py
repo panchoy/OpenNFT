@@ -20,12 +20,12 @@ mask = "001_000008_000"
 # fns = [1, 2, 3, 4, 6, 5, 7, 8]
 fns = None
 
-testCase = 'SVM'
+testCase = 'PSC'
 
 if testCase == 'PSC':
-    srcpath = 'C:/_RT/rtData/NF_PSC/NF_Run_1_src'
-    dstpath = 'C:/_RT/rtData/NF_PSC/NF_Run_1'
-    pause_in_sec = 1
+    srcpath = 'E:/Data/RT/receive/func'
+    dstpath = r'E:\Data\RT\data\testpatient_20230405\watch'
+    pause_in_sec = 0.7
 
 elif testCase == 'SVM':
     srcpath = 'C:/_RT/rtData/NF_SVM/NF_Run_1_src'

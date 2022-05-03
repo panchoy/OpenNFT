@@ -32,7 +32,6 @@ _________________________________________________________________________
 The module below is written by Artem Nikonorov, Evgeny Prilepin, Yury Koush, Ronald Sladky
 
 """
-
 import time
 import glob
 import queue
@@ -243,7 +242,6 @@ class OpenNFT(QWidget):
         self.reachedFirstFile = False
 
         self.initializeUi()
-        self.readAppSettings()
         self.initialize(start=False)
 
         self.calc_rtqa = None
@@ -534,8 +532,11 @@ class OpenNFT(QWidget):
                     if 'plugin_prot' in self.pluginWindow.plugins[p].META.keys():
                         if self.settings.value('Prot') != self.pluginWindow.plugins[p].META['plugin_prot']:
                             QMessageBox.warning(self, 'Plugin compatibility issue',
-                                "Plugin '"+self.pluginWindow.plugins[p].META['plugin_name']+"' requires a protocol '"+self.pluginWindow.plugins[p].META['plugin_prot']+"'."+
-                                "\nIt is not compatible with current prortocol '"+self.settings.value('Prot')+"' and will not be used.")
+                                                "Plugin '" + self.pluginWindow.plugins[p].META[
+                                                    'plugin_name'] + "' requires a protocol '" +
+                                                self.pluginWindow.plugins[p].META['plugin_prot'] + "'." +
+                                                "\nIt is not compatible with current prortocol '" + self.settings.value(
+                                                    'Prot') + "' and will not be used.")
                             continue
                     self.plugins += [plugin.Plugin(self, self.pluginWindow.plugins[p])]
 
@@ -718,6 +719,16 @@ class OpenNFT(QWidget):
         else:
             try:
                 fname = self.files_queue.get_nowait()
+                ############### 修改2 #################
+                # 读取当前文件大小，比较两次读取的大小，若一样则传输完毕，可以读取文件进行处理。
+                presize = Path(fname).stat().st_size
+                time.sleep(0.02)
+                filesize = Path(fname).stat().st_size
+                while filesize != presize:
+                    presize = filesize
+                    time.sleep(0.02)
+                    filesize = Path(fname).stat().st_size
+                ######################################
             except queue.Empty:
                 if (self.previousIterStartTime > 0) and (self.preiteration < self.iteration):
                     if (time.time() - self.previousIterStartTime) > (self.P['TR'] / 1000):
@@ -766,7 +777,7 @@ class OpenNFT(QWidget):
                     cur_fname = splitted_name[0] + "_" + splitted_name[1] + "_" + splitted_name[2] + ".dcm"
                 r = re.findall(r'\D(\d+).\w+$', cur_fname)
                 cur_num = int(r[-1])
-                if cur_num - last_num == 1:
+                if True:
                     fname = cur_fname
                     break
 
@@ -802,7 +813,10 @@ class OpenNFT(QWidget):
                 firstFileName = self.P['FirstFileName'].split('.')[0]
             else:
                 firstFileName = self.P['FirstFileName']
-            if not firstFileName in fname:
+            ############ 修改1 ############
+            # 增加 firstFileName != '_.dcm' 用于读取任意文件名的dcm数据并作为第一张
+            if firstFileName != '_.dcm' and not firstFileName in fname:
+            ##############################
                 logger.info('Volume skipped, waiting for first file')
                 self.isMainLoopEntered = False
                 return
@@ -1209,6 +1223,7 @@ class OpenNFT(QWidget):
 
     # --------------------------------------------------------------------------
     def initialize(self, start=True):
+        self.readAppSettings()
         ts = time.time()
 
         self.isInitialized = False
@@ -1289,10 +1304,18 @@ class OpenNFT(QWidget):
         self.reultFromHelper = None
         self.reachedFirstFile = False
         self.autoRTQASetup = False
-        self.view_form_input = None
-        self.view_form_output = None
-        self.rtqa_input = None
-        self.rtqa_output = None
+        if self.orth_view:
+            self.view_form_input["is_stopped"] = True
+            self.view_form_input = None
+            self.view_form_output = None
+            self.orth_view.terminate()
+        self.orth_view = None
+
+        if self.calc_rtqa:
+            self.calc_rtqa.terminate()
+            self.calc_rtqa = None
+            self.rtqa_input = None
+            self.rtqa_output = None
         self.main_loop = None
 
         self.eng.workspace['P'] = self.P
@@ -1333,6 +1356,8 @@ class OpenNFT(QWidget):
             logger.info("Setup application...")
 
             self.orthViewInitialize = True
+            self.orthViewUpdateCheckTimer.stop()
+            self.mosaicViewUpdateCheckTimer.stop()
 
             # for multiply setup
             # TODO: Is this flag necessary?
@@ -1483,6 +1508,9 @@ class OpenNFT(QWidget):
 
             self.btnRTQA.setEnabled(False)
             self.orthViewInitialize = True
+
+            self.orthViewUpdateCheckTimer.stop()
+            self.mosaicViewUpdateCheckTimer.stop()
 
             if not self.resetDone:
                 self.reset()
@@ -2154,10 +2182,9 @@ class OpenNFT(QWidget):
                         rgba_neg_map_image = self.view_form_output['neg_overlay_c']
 
                 self.orthView.set_background_image(proj, bg_image)
-                if rgba_pos_map_image is not None:
+                if rgba_pos_map_image is not None and rgba_pos_map_image.ndim == 3:
                     self.orthView.set_pos_map_image(proj, rgba_pos_map_image)
-
-                if rgba_neg_map_image is not None:
+                if rgba_neg_map_image is not None and rgba_neg_map_image.ndim == 3:
                     self.orthView.set_neg_map_image(proj, rgba_neg_map_image)
 
             pos_thr = self.view_form_output["pos_thresholds"]
@@ -2534,7 +2561,8 @@ class OpenNFT(QWidget):
             filePathStatus += "MRI Watch Folder exists. "
         else:
             filePathStatus += "MRI Watch Folder does not exists. "
-        if Path(self.leFirstFilePath.text()).is_file():
+        if Path(self.leFirstFilePath.text()).is_file() or self.leFirstFilePath.text().strip().split('\\')[
+            -1] == '_.dcm':
             filePathStatus += "First file exists. "
         else:
             filePathStatus += "First file does not exist. "

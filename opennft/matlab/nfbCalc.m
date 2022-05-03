@@ -36,6 +36,18 @@ else
     loopNrROIs = P.NrROIs;
 end
 
+if ~isfield(mainLoopData,'up_down')
+    mainLoopData.up_down = -1;
+    mainLoopData.pre_up_down = -1;
+    mainLoopData.neg_used = [];
+    mainLoopData.pos_used = [];
+    mainLoopData.imgIdx = 0;
+    mainLoopData.imgPath = '';
+end
+
+neg_imgs = dir('./nfbImage/neg/*.jpg');
+pos_imgs = dir('./nfbImage/pos/*.jpg');
+
 %% Continuous PSC NF
 if flags.isPSC && (strcmp(P.Prot, 'Cont') || strcmp(P.Prot, 'ContTask'))
     blockNF = mainLoopData.blockNF;
@@ -89,9 +101,34 @@ if flags.isPSC && (strcmp(P.Prot, 'Cont') || strcmp(P.Prot, 'ContTask'))
         mainLoopData.norm_percValues(indVolNorm,:) = norm_percValues;
         mainLoopData.dispValues(indVolNorm) = dispValue;
         mainLoopData.dispValue = dispValue;
+        mainLoopData.pre_up_down = mainLoopData.up_down;
     else
+        if mainLoopData.pre_up_down ~= 0
+            if mainLoopData.up_down == 1 && mainLoopData.imgIdx ~= 0
+                mainLoopData.pos_used(end+1) = mainLoopData.imgIdx;
+                imgIdx = randi([1,length(neg_imgs)]);
+                while ismember(imgIdx,mainLoopData.neg_used)
+                    imgIdx = randi([1,length(neg_imgs)]);
+                end
+                mainLoopData.imgPath = [neg_imgs(imgIdx).folder filesep neg_imgs(imgIdx).name];
+                mainLoopData.imgIdx = imgIdx;
+            elseif mainLoopData.up_down == -1 && mainLoopData.imgIdx ~= 0
+                mainLoopData.neg_used(end+1) = mainLoopData.imgIdx;
+                imgIdx = randi([1,length(pos_imgs)]);
+                while ismember(imgIdx,mainLoopData.pos_used)
+                    imgIdx = randi([1,length(pos_imgs)]);
+                end
+                mainLoopData.imgPath = [pos_imgs(imgIdx).folder filesep pos_imgs(imgIdx).name];
+                mainLoopData.imgIdx = imgIdx;
+            else
+                mainLoopData.imgIdx = randi([1,length(pos_imgs)]);
+                mainLoopData.imgPath = [pos_imgs(mainLoopData.imgIdx).folder filesep pos_imgs(mainLoopData.imgIdx).name];
+            end
+            mainLoopData.up_down = mainLoopData.up_down * -1;
+        end
         tmp_fbVal = 0;
         mainLoopData.dispValue = 0;
+        mainLoopData.pre_up_down = 0;
     end
 
     mainLoopData.vectNFBs(indVolNorm) = tmp_fbVal;
@@ -101,6 +138,8 @@ if flags.isPSC && (strcmp(P.Prot, 'Cont') || strcmp(P.Prot, 'ContTask'))
 
     displayData.Reward = mainLoopData.Reward;
     displayData.dispValue = mainLoopData.dispValue;
+    displayData.up_down = mainLoopData.up_down;
+    displayData.imgPath = mainLoopData.imgPath;
 % else
 %     tmp_fbVal = 0;
 %     mainLoopData.dispValue = 0;
